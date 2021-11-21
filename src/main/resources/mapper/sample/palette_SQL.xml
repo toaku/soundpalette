@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="palette">
+
+	<select id="selectMainPlayLists" resultType="hashmap">
+		<![CDATA[
+			SELECT P.PLAY_NUM, P.PLAY_TITLE, I.IMG_NAME, COUNT(MUSIC_NUM) COUNTMUSIC
+			FROM PLAYLIST P, IMG I, PLAY_IN_MUSIC PIM
+			WHERE P.IMG_NUM = I.IMG_NUM AND PIM.PLAY_NUM(+) = P.PLAY_NUM AND P.PLAY_MAIN = 'Y'
+			GROUP BY P.PLAY_NUM, P.PLAY_TITLE, I.IMG_NAME
+		]]>
+	</select>
+
+	<select id="selectMemberLogin" parameterType="hashmap"
+		resultType="hashmap">
+        <![CDATA[
+            SELECT M.MEM_EMAIL, M.MEM_PW, M.MEM_NICK, M.MEM_AUTH, M.MEM_NUM, M.MEM_NAME, M.IMG_NUM, M.MEM_BIRTH, M.MEM_DEL, I.IMG_NAME
+            FROM MEMBER M, IMG I
+            WHERE M.IMG_NUM = I.IMG_NUM AND M.MEM_EMAIL = #{MEM_EMAIL} AND M.MEM_PW = #{MEM_PW}
+        ]]>
+	</select>
+	
+	<select id="searchMusicTitle" parameterType="hashmap"
+		resultType="hashmap">
+        <![CDATA[
+            SELECT MUSIC_NUM, MUSIC_TITLE, MUSIC_ART 
+            FROM MUSIC 
+            WHERE LOWER(MUSIC_TITLE) LIKE LOWER('%${searchText}%')
+        ]]>
+	</select>
+	
+	<select id="searchMusicArt" parameterType="hashmap"
+		resultType="hashmap">
+        <![CDATA[
+            SELECT MUSIC_NUM, MUSIC_TITLE, MUSIC_ART 
+            FROM MUSIC 
+            WHERE LOWER(MUSIC_ART) LIKE LOWER('%${searchText}%')
+        ]]>
+	</select>
+	
+	<!-- MEM_NICK 추가 -->
+	<select id="selectLoginAccount" parameterType="hashmap"
+		resultType="hashmap">
+		 <![CDATA[
+            SELECT MEM_PW
+            FROM MEMBER 
+            WHERE MEM_EMAIL = #{MEM_EMAIL}
+        ]]>
+	</select>
+
+	<select id="selectMemberId" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT MEM_EMAIL 
+			FROM MEMBER 
+			WHERE MEM_NAME = #{MEM_NAME} AND MEM_BIRTH = #{MEM_BIRTH} AND MEM_DEL = 'N'
+		]]>
+	</select>
+
+	<select id="selectMemberPw" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT MEM_PW 
+			FROM MEMBER 
+			WHERE MEM_EMAIL = #{MEM_EMAIL} AND MEM_NAME = #{MEM_NAME}
+		]]>
+	</select>
+
+	<select id="selectMemberInfo" parameterType="hashmap"
+		resultType="hashmap">
+        <![CDATA[
+            SELECT MEM_EMAIL, MEM_PW, MEM_NICK, MEM_BIRTH, MEM_NAME
+            FROM MEMBER 
+            WHERE MEM_NUM = #{MEM_NUM}
+        ]]>
+	</select>
+
+	<select id="selectMemberNick" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT MEM_NICK 
+			FROM MEMBER 
+		]]>
+	</select>
+
+	<select id="selectMemberEmail" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT MEM_EMAIL 
+			FROM MEMBER 
+			WHERE MEM_EMAIL = #{MEM_EMAIL}
+		]]>
+	</select>
+
+	<select id="selectMemberEmailForJoin" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT MEM_EMAIL 
+			FROM MEMBER 
+		]]>
+	</select>
+
+	<insert id="insertMember" parameterType="hashmap"
+		useGeneratedKeys="true" keyProperty="MEM_NUM">
+		<selectKey keyProperty="MEM_NUM" resultType="string"
+			order="BEFORE">
+			SELECT MEM_NUM_SEQ.NEXTVAL as MEM_NUM FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO MEMBER(MEM_NUM, MEM_EMAIL, MEM_NAME, MEM_NICK, MEM_PW, MEM_BIRTH, IMG_NUM)
+			VALUES (#{MEM_NUM}, #{MEM_EMAIL}, #{MEM_NAME}, #{MEM_NICK}, #{MEM_PW}, #{MEM_BIRTH}, 1)
+		]]>
+	</insert>
+
+	<select id="memberIdCheck" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+		SELECT * FROM MEMBER ORDER BY MEM_NUM DESC
+		]]>
+	</select>
+
+	<select id="selectMemberIMG" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT IMG_NAME 
+			FROM IMG 
+			WHERE IMG_NUM = (
+			    SELECT IMG_NUM 
+			    FROM MEMBER 
+			    WHERE MEM_NUM = #{MEM_NUM}
+			)
+		]]>
+	</select>
+
+	<update id="updateMemberInfo" parameterType="hashmap">
+		<![CDATA[
+			UPDATE MEMBER 
+			SET MEM_NICK = #{MEM_NICK}, MEM_PW = #{MEM_PW} 
+			WHERE MEM_NUM = #{MEM_NUM}
+		]]>
+	</update>
+
+	<update id="updateMemberPw" parameterType="hashmap">
+		<![CDATA[
+			UPDATE MEMBER 
+			SET MEM_PW = #{MEM_PW} 
+			WHERE MEM_NUM = #{MEM_NUM}
+		]]>
+	</update>
+	
+	<update id="updateMainPlayList" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PLAYLIST 
+			SET PLAY_MAIN = #{PLAY_MAIN}
+			WHERE PLAY_NUM = #{PLAY_NUM}
+		]]>
+	</update>
+
+	<insert id="insertIMG" parameterType="hashmap"
+		useGeneratedKeys="true" keyProperty="IMG_NUM">
+		<selectKey keyProperty="IMG_NUM" resultType="string"
+			order="BEFORE">
+			SELECT IMG_NUM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+				INSERT INTO IMG 
+				VALUES(#{IMG_NUM}, #{IMG_NAME})
+		]]>
+	</insert>
+
+	<update id="updateMEMIMG" parameterType="hashmap">
+		<![CDATA[
+			UPDATE MEMBER 
+			SET IMG_NUM = #{IMG_NUM} 
+			WHERE MEM_NUM = #{MEM_NUM}
+		]]>
+	</update>
+
+	<select id="selectMyMember" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT MEM_NAME, MEM_NICK, MEM_EMAIL, MEM_BIRTH, MEM_PW 
+			FROM MEMBER 
+			WHERE MEM_NUM = #{MEM_NUM}
+		]]>
+	</select>
+
+	<select id="selectMyMRBs" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT MRB_NUM, MRB_TITLE, MRB_DATE 
+			FROM MRB 
+			WHERE MEM_NUM = #{MEM_NUM} AND MRB_DEL = 'N'
+		]]>
+	</select>
+
+	<select id="selectMyCMTs" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT CMT_NUM, CMT_CON, CMT_DATE 
+			FROM CMT 
+			WHERE MEM_NUM = #{MEM_NUM} AND CMT_DEL = 'N'
+		]]>
+	</select>
+
+	<select id="selectMemberHits" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT MRB_NUM, MRB_TITLE, MRB_DATE 
+			FROM MRB 
+			WHERE MRB_NUM IN (
+				SELECT MRB_NUM 
+				FROM HIT 
+				WHERE MEM_NUM = #{MEM_NUM}
+			) AND MRB_DEL = 'N'
+		]]>
+	</select>
+
+	<update id="deleteMember" parameterType="hashmap">
+		<![CDATA[
+			UPDATE MEMBER 
+			SET MEM_DEL = 'Y' 
+			WHERE MEM_NUM = #{MEM_NUM}
+		]]>
+	</update>
+
+	<select id="selectMemberPlayLists" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT I.IMG_NAME, P.PLAY_TITLE, P.PLAY_NUM, COUNT(PIM.MUSIC_NUM) COUNTMUSIC
+			FROM PLAYLIST P, IMG I, PLAY_IN_MUSIC PIM
+			WHERE P.PLAY_NUM = PIM.PLAY_NUM AND P.IMG_NUM = I.IMG_NUM AND P.MEM_NUM = #{MEM_NUM}
+			GROUP BY I.IMG_NAME, P.PLAY_TITLE, P.PLAY_NUM
+		]]>
+	</select>
+
+	<select id="selectPIMs" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT MU.MUSIC_NUM, MU.MUSIC_TITLE, MU.MUSIC_ART, MU.MUSIC_LINK, PIM.PIM_ORDER
+			FROM MUSIC MU, PLAY_IN_MUSIC PIM
+			WHERE MU.MUSIC_NUM = PIM.MUSIC_NUM 
+			  AND PIM.PLAY_NUM = #{PLAY_NUM}
+		]]>
+	</select>
+	
+	<select id="selectPlayLists" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT P.PLAY_NUM, P.PLAY_TITLE, I.IMG_NAME, COUNT(PIM.PLAY_NUM) COUNTPIM, P.PLAY_MAIN
+			FROM PLAYLIST P, IMG I, PLAY_IN_MUSIC PIM
+			WHERE P.IMG_NUM = I.IMG_NUM AND P.PLAY_NUM = PIM.PLAY_NUM(+) AND P.MEM_NUM = #{MEM_NUM}
+            GROUP BY P.PLAY_NUM, P.PLAY_TITLE, I.IMG_NAME, P.PLAY_MAIN
+		]]>
+	</select>
+	
+	<select id="selectPlayList" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT PLAY_TITLE, (
+				SELECT COUNT(PLAY_NUM) 
+				FROM PLAY_IN_MUSIC 
+				WHERE PLAY_NUM = #{PLAY_NUM}) CM
+			FROM PLAYLIST
+			WHERE PLAY_NUM = #{PLAY_NUM}
+		]]>
+	</select>
+
+	<!-- <update id="insertPlayList" parameterType="hashmap">
+		<![CDATA[
+			DECLARE
+				IMGNUM NUMBER;
+				PLAYNUM NUMBER;
+			BEGIN
+				SELECT IMG_NUM_SEQ.NEXTVAL INTO IMGNUM FROM DUAL;
+				SELECT PLAY_NUM_SEQ.NEXTVAL INTO PLAYNUM FROM DUAL;
+				
+				INSERT INTO IMG VALUES(IMGNUM, #{IMG_TITLE});
+			    INSERT INTO PLAYLIST(PLAY_NUM, PLAY_TITLE, MEM_NUM, IMG_NUM) 
+			    VALUES(PLAYNUM, #{PLAY_TITLE}, #{MEM_NUM}, IMGNUM);
+		]]>
+		<foreach collection="musicList" item="MU" open="INSERT ALL "
+			close=" SELECT * FROM DUAL;">
+				<![CDATA[
+					 INTO PLAY_IN_MUSIC 
+					VALUES(PLAYNUM, #{MU.MUSIC_NUM}, #{MU.PIM_ORDER}) 
+				]]>
+		</foreach>
+		<![CDATA[	
+			END;
+		]]>
+	</update> -->
+	
+	<insert id="insertPlayList" parameterType="hashmap"
+		useGeneratedKeys="true" keyProperty="PLAY_NUM">
+		<selectKey keyProperty="PLAY_NUM" resultType="int"
+			order="BEFORE">
+			SELECT PLAY_NUM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO PLAYLIST(PLAY_NUM, PLAY_TITLE, MEM_NUM) 
+			VALUES(#{PLAY_NUM}, 'NEW PLAYLIST', #{MEM_NUM})
+		]]>
+	</insert>
+
+	<select id="selectMemberHitMusic" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT MUSIC_TITLE, MUSIC_ART, MUSIC_LINK
+			FROM MUSIC
+			WHERE MUSIC_NUM IN (
+			    SELECT MUSIC_NUM 
+			    FROM HIT 
+			    WHERE MEM_NUM = #{MEM_NUM}
+			)
+		]]>
+	</select>
+
+	<select id="selectMembers" resultType="hashmap">
+		<![CDATA[
+			SELECT M.MEM_NUM, M.MEM_EMAIL, M.MEM_NAME, M.MEM_NICK, COUNT(MR.MRB_NUM) COUNTMRB, COUNT(C.CMT_NUM) COUNTCMT, M.MEM_DEC, M.MEM_STDATE, M.MEM_DEL, M.MEM_AUTH 
+            FROM MEMBER M, MRB MR, CMT C
+            WHERE M.MEM_NUM = MR.MEM_NUM(+) AND M.MEM_NUM = C.MEM_NUM(+) AND M.MEM_DEL = 'N'
+            GROUP BY M.MEM_NUM, M.MEM_EMAIL, M.MEM_NAME, M.MEM_NICK, M.MEM_DEC, M.MEM_STDATE, M.MEM_DEL, M.MEM_AUTH
+		]]>
+	</select>
+
+	<update id="updateMemberST" parameterType="hashmap">
+		<![CDATA[
+			UPDATE MEMBER 
+			SET MEM_STDATE = #{MEM_STDATE} 
+			WHERE MEM_NUM = #{MEM_NUM}
+		]]>
+	</update>
+
+	<select id="selectAdminPlayLists" resultType="hashmap">
+		<![CDATA[
+			SELECT P.PLAY_NUM, P.PLAY_TITLE, I.IMG_NAME, P.PLAY_MAIN
+			FROM PLAYLIST P, IMG I 
+			WHERE P.IMG_NUM = I.IMG_NUM AND P.MEM_NUM IN (
+			    SELECT MEM_NUM 
+			    FROM MEMBER 
+			    WHERE MEM_AUTH = 'Y'
+			)
+		]]>
+	</select>
+
+	<insert id="insertAdminPlayList" parameterType="hashmap"
+		useGeneratedKeys="false">
+		<![CDATA[
+			DECLARE
+				IMGNUM NUMBER;
+				PLAYNUM NUMBER;
+			BEGIN
+				SELECT IMG_NUM_SEQ.NEXTVAL INTO IMGNUM FROM DUAL;
+				SELECT PLAY_NUM_SEQ.NEXTVAL INTO PLAYNUM FROM DUAL;
+				
+				INSERT INTO IMG 
+				VALUES(IMGNUM, #{IMG_TITLE});
+				
+			    INSERT INTO PLAYLIST(PLAY_NUM, PLAY_TITLE, MEM_NUM, IMG_NUM) 
+			    VALUES(PLAYNUM, #{PLAY_TITLE}, #{MEM_NUM}, IMGNUM);
+		]]>
+		<foreach collection="tagList" item="TAG" open="INSERT ALL "
+			close=" SELECT * FROM DUAL;">
+			    <![CDATA[
+			     INTO TAG_TARGET(PLAY_NUM, TAG_NUM) 
+			    VALUES(#{TAG.PLAYNUM}, #{TAG.TAG_NUM}) 
+			   	]]>
+		</foreach>
+		<foreach collection="musicList" item="MU" open="INSERT ALL "
+			close=" SELECT * FROM DUAL;">
+				<![CDATA[
+					 INTO PLAY_IN_MUSIC 
+					VALUES(PLAYNUM, #{MU.MUSIC_NUM}, #{MU.PIM_ORDER}) 
+				]]>
+		</foreach>
+		<![CDATA[	
+			END;
+		]]>
+	</insert>
+
+	<insert id="insertTag" parameterType="hashmap"
+		useGeneratedKeys="true" keyProperty="TAG_NUM">
+		<selectKey keyProperty="TAG_NUM" resultType="int"
+			order="BEFORE">
+			SELECT TAG_NUM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO TAG 
+			VALUES(#{TAG_NUM}, #{TAG_NAME})
+		]]>
+	</insert>
+
+	<select id="selectTags" resultType="hashmap">
+		<![CDATA[
+			SELECT TAG_NUM, TAG_NAME FROM TAG
+		]]>
+	</select>
+
+	<delete id="deleteTag" parameterType="hashmap">
+		DELETE FROM TAG
+		<where>
+			<foreach collection="tagArray" item="TAG_NUM" close=";">
+				<![CDATA[
+					 OR TAG_NUM = #{TAG_NUM}
+				]]>
+			</foreach>
+		</where>
+	</delete>
+
+	<select id="selectReps" resultType="hashmap">
+		<![CDATA[
+			SELECT R.MEM_NUMED, M.MEM_EMAIL, R.MRB_NUM, MR.MRB_TITLE, R.REP_CON, R.MEM_NICK, R.REP_DATE, M.MEM_DEC 
+			FROM REP R, MRB MR, MEMBER M 
+			WHERE R.MEM_NUMED = M.MEM_NUM AND R.MEM_NUMED = MR.MEM_NUM AND R.REP_DEL = 'N'
+		]]>
+	</select>
+
+	<update id="updateRep" parameterType="hashmap">
+		<![CDATA[
+			UPDATE REP SET REP_DEL = 'Y' WHERE REP_NUM IN 
+		]]>
+		<foreach collection="repArray" item="REP_NUM" separator=","
+			open="(" close=");">
+				<![CDATA[
+					#{REP_NUM}
+				]]>
+		</foreach>
+	</update>
+
+	<select id="selectMRBs" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT 
+                 MR.MRB_NUM, 
+                 MR.MRB_TITLE, 
+                 M.MEM_NICK, 
+                 MR.MRB_DATE,
+                COUNTH.COUNTHIT,
+                 MR.MRB_CNT,
+                 MR.MRB_ART
+             FROM 
+                 MRB MR, 
+                 MEMBER M, 
+                 HIT H,
+                (SELECT COUNT(HIT_NUM) COUNTHIT, MRB_NUM FROM HIT WHERE HIT_DEL = 'N' GROUP BY MRB_NUM) COUNTH
+             WHERE M.MEM_NUM = MR.MEM_NUM AND MR.MRB_NUM = H.MRB_NUM(+) AND MR.MRB_NUM = COUNTH.MRB_NUM(+) AND MR.MRB_DEL = 'N'
+             GROUP BY MR.MRB_NUM, MR.MRB_TITLE, M.MEM_NICK, MR.MRB_DATE, MR.MRB_CNT, MR.MRB_ART, COUNTH.COUNTHIT
+             ORDER BY MR.MRB_NUM DESC
+		]]>
+	</select>
+
+	<insert id="insertMRB" parameterType="hashmap"
+		useGeneratedKeys="false">
+		<selectKey keyProperty="MRB_NUM" resultType="integer"
+			order="BEFORE">
+			SELECT MRB_NUM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+        <![CDATA[
+                INSERT INTO MRB(MRB_NUM, MRB_TITLE, MEM_NUM, MRB_CON, MRB_ART, MUSIC_LINK)
+                VALUES(#{MRB_NUM}, #{MRB_TITLE}, #{MEM_NUM}, #{MRB_CON}, #{MRB_ART}, #{MUSIC_LINK})
+        ]]>
+		<!-- <foreach collection="tagList" item="TAG" open="INSERT ALL " close=" 
+			SELECT * FROM DUAL;"> <![CDATA[ INTO TAG_TARGET(MRB_NUM, TAG_NUM) VALUES(#{MRB_NUM}, 
+			#{TAG.TAG_NUM}) ]]> </foreach> -->
+	</insert>
+
+	<insert id="insertMusic" parameterType="hashmap"
+		useGeneratedKeys="true" keyProperty="MUSIC_NUM">
+		<selectKey keyProperty="MUSIC_NUM" resultType="int"
+			order="BEFORE">
+			SELECT MUSIC_NUM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[	
+			INSERT INTO MUSIC(MUSIC_NUM, MUSIC_ART, MUSIC_TITLE, MUSIC_LINK)
+			VALUES(#{MUSIC_NUM}, #{MUSIC_ART}, #{MUSIC_TITLE}, #{MUSIC_LINK})
+		]]>
+	</insert>
+	
+	<insert id="insertPIM" parameterType="hashmap">
+		<![CDATA[	
+			INSERT INTO PLAY_IN_MUSIC(PLAY_NUM, MUSIC_NUM, PIM_ORDER)
+			VALUES (#{PLAY_NUM}, #{MUSIC_NUM}, (
+				SELECT NVL(MAX(PIM_ORDER), 0) 
+				FROM PLAY_IN_MUSIC 
+				WHERE PLAY_NUM = #{PLAY_NUM}) + 1)
+		]]>
+	</insert>
+
+	<update id="updateMRB" parameterType="hashmap">
+		<![CDATA[
+			UPDATE MRB 
+			SET MRB_CON = #{MRB_CON}, MRB_ART = #{MRB_ART}, MRB_TITLE = #{MRB_TITLE}
+			WHERE MRB_NUM = #{MRB_NUM}
+		]]>
+	</update>
+
+	<update id="updateMRBcnt" parameterType="hashmap">
+		<![CDATA[
+			UPDATE MRB 
+			SET
+				MRB_CNT = NVL(MRB_CNT, 0) + 1
+			WHERE
+				MRB_NUM = #{MRB_NUM}	
+		]]>
+	</update>
+
+	<update id="deleteMRB" parameterType="hashmap">
+		<![CDATA[
+			UPDATE MRB 
+			SET MRB_DEL = 'Y' 
+			WHERE MRB_NUM = #{MRB_NUM}
+		]]>
+	</update>
+
+	<select id="selectDetailMRB" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT RNUM, MRB_NUM, MRB_CNT, MRB_TITLE, MEM_NICK, MRB_DATE, MUSIC_LINK, MRB_CON, COUNTHIT, MRB_ART, HIT_DEL
+			FROM (SELECT ROWNUM AS RNUM, MR.MRB_NUM, MR.MRB_CNT, MR.MRB_TITLE, M.MEM_NICK, MR.MRB_DATE, MR.MUSIC_LINK, MR.MRB_CON, (
+			    SELECT COUNT(MRB_NUM) FROM HIT WHERE MRB_NUM = #{MRB_NUM} AND HIT_DEL = 'N') COUNTHIT
+			    , MR.MRB_ART, (
+			        SELECT HIT_DEL FROM HIT WHERE MEM_NUM = #{MEM_NUM} AND MRB_NUM = #{MRB_NUM}) HIT_DEL
+			FROM MRB MR, MEMBER M, HIT H
+			WHERE MR.MEM_NUM = M.MEM_NUM AND MR.MRB_NUM = H.MRB_NUM(+) AND MR.MRB_NUM = #{MRB_NUM})
+			WHERE RNUM = 1
+		]]>
+	</select>
+
+	<insert id="insertREP" parameterType="hashmap"
+		useGeneratedKeys="true" keyProperty="REP_NUM">
+		<selectKey keyProperty="REP_NUM" resultType="int"
+			order="BEFORE">
+			SELECT REP_NUM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO REP(REP_NUM, REP_CON, MRB_NUM, MEM_NICK, MEM_NUMED, CMT_NUM) 
+			VALUES(#{REP_NUM}, #{REP_CON}, #{MRB_NUM}, #{MEM_NICK}, #{MEM_NUMED}, #{CMT_NUM})
+		]]>
+	</insert>
+
+	<insert id="insertHIT" parameterType="hashmap"
+		useGeneratedKeys="true" keyProperty="HIT_NUM">
+		<selectKey keyProperty="HIT_NUM" resultType="int"
+			order="BEFORE">
+			SELECT HIT_NUM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO HIT(HIT_NUM, MEM_NUM, MRB_NUM, MUSIC_NUM) 
+			VALUES(#{HIT_NUM}, #{MEM_NUM}, #{MRB_NUM}, #{MUSIC_NUM})
+		]]>
+	</insert>
+
+	<update id="updateHIT" parameterType="hashmap">
+        <![CDATA[
+            UPDATE HIT 
+            SET HIT_DEL = #{HIT_DEL} 
+            WHERE MEM_NUM = #{MEM_NUM} AND MRB_NUM = #{MRB_NUM}
+        ]]>
+	</update>
+
+	<select id="selectHIT" parameterType="hashmap"
+		resultType="hashmap">
+        <![CDATA[
+            SELECT HIT_DEL, (SELECT COUNT(HIT_NUM) FROM HIT WHERE MRB_NUM = #{MRB_NUM} AND HIT_DEL = 'N') COUNTHIT
+            FROM HIT WHERE MRB_NUM = #{MRB_NUM} AND MEM_NUM = #{MEM_NUM}
+        ]]>
+	</select>
+
+	<insert id="insertCMT" parameterType="hashmap"
+		useGeneratedKeys="true" keyProperty="CMT_NUM">
+		<selectKey keyProperty="CMT_NUM" resultType="int"
+			order="BEFORE">
+			SELECT CMT_NUM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		<![CDATA[
+			INSERT INTO CMT(CMT_NUM, MRB_NUM, MEM_NUM, CMT_CON)
+			VALUES(#{CMT_NUM}, #{MRB_NUM}, #{MEM_NUM}, #{CMT_CON})
+		]]>
+	</insert>
+
+	<update id="updateCMT" parameterType="hashmap">
+		<![CDATA[
+			UPDATE CMT 
+			SET CMT_CON = #{CMT_CON} 
+			WHERE CMT_NUM = #{CMT_NUM}
+		]]>
+	</update>
+
+	<update id="deleteCMT" parameterType="hashmap">
+		<![CDATA[
+			UPDATE CMT 
+			SET CMT_DEL = 'Y' 
+			WHERE CMT_NUM = #{CMT_NUM}
+		]]>
+	</update>
+
+	<select id="selectCMTs" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			        SELECT ROW_NUMBER() OVER (ORDER BY C.CMT_NUM DESC) RNUM, C.CMT_CON, M.MEM_NICK, C.CMT_DATE, C.CMT_NUM 
+			        FROM CMT C, MEMBER M 
+			        WHERE C.MEM_NUM = M.MEM_NUM AND CMT_DEL = 'N' AND C.MRB_NUM = #{MRB_NUM}
+		]]>
+	</select>
+
+	<select id="selectRepMrb" resultType="hashmap">
+        <![CDATA[
+            SELECT R.MEM_NUMED, M.MEM_EMAIL, R.MRB_NUM, MR.MRB_TITLE, R.REP_CON, R.MEM_NICK, R.REP_DATE, M.MEM_DEC 
+            FROM REP R, MRB MR, MEMBER M 
+            WHERE R.MEM_NUMED = M.MEM_NUM AND R.MRB_NUM = MR.MRB_NUM AND R.REP_DEL = 'N'
+        ]]>
+	</select>
+
+	<select id="selectRepCmt" resultType="hashmap">
+        <![CDATA[
+            SELECT R.MEM_NUMED, M.MEM_EMAIL, R.CMT_NUM, C.CMT_CON, R.REP_CON, R.MEM_NICK, R.REP_DATE, M.MEM_DEC 
+            FROM REP R, CMT C, MEMBER M 
+            WHERE R.MEM_NUMED = M.MEM_NUM AND R.CMT_NUM = C.CMT_NUM AND R.REP_DEL = 'N'
+        ]]>
+	</select>
+	<!-- 내 글  -->
+	<select id="selectMyMRB" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT  
+				MR.MRB_NUM, MR.MRB_TITLE, MR.MRB_ART, M.MEM_NICK, COUNTH.COUNTHIT
+			FROM   
+				 MRB MR, 
+				 MEMBER M, 
+		    	 (SELECT COUNT(MRB_NUM) COUNTHIT, MRB_NUM FROM HIT GROUP BY MRB_NUM) COUNTH
+			WHERE M.MEM_NUM = MR.MEM_NUM AND COUNTH.MRB_NUM(+) = MR.MRB_NUM AND M.MEM_NUM = #{MEM_NUM} AND MR.MRB_DEL = 'N'
+		]]>
+	</select>
+	<!--  좋아요 한 글 -->
+	<select id="selectMyhit" parameterType="hashmap"
+		resultType="hashmap">
+		<![CDATA[
+			SELECT 
+				MR.MRB_NUM, MR.MRB_TITLE, M.MEM_NICK, MR.MRB_DATE, MR.MRB_CNT, H.HIT_DEL
+             FROM 
+                 MRB MR, 
+                 MEMBER M, 
+                 HIT H
+             WHERE M.MEM_NUM = MR.MEM_NUM AND H.MRB_NUM = MR.MRB_NUM AND H.MEM_NUM = #{MEM_NUM} AND MR.MRB_DEL = 'N' AND H.HIT_DEL = 'N'
+		]]>
+	</select>
+
+</mapper>
